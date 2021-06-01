@@ -38,25 +38,35 @@ type setOperation func(file1, file2 string) error
 
 func buildCobraCmd(setOperationFunc setOperation) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		file1, file2 := args[0], args[1]
-		return setOperationFunc(file1, file2)
+		return setOperationFunc(args[0], args[1])
 	}
 }
 
-func getLineLookup(filePath string) (map[string]struct{}, error) {
+func scanFile(filePath string, lineFunc func(line string) error) error {
 	f, err := os.Open(filePath)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer f.Close()
-	lookup := make(map[string]struct{})
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
-		lookup[scanner.Text()] = struct{}{}
+		err := lineFunc(scanner.Text())
+		if err != nil {
+			return err
+		}
 	}
 	if err := scanner.Err(); err != nil {
-		return nil, err
+		return err
 	}
+	return nil
+}
+
+func getLineLookup(filePath string) (map[string]struct{}, error) {
+	lookup := make(map[string]struct{})
+	scanFile(filePath, func(line string) error {
+		lookup[line] = struct{}{}
+		return nil
+	})
 	return lookup, nil
 }
 
@@ -66,20 +76,12 @@ func intersection(file1, file2 string) error {
 		return err
 	}
 
-	f, err := os.Open(file1)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		if _, ok := file2Lines[scanner.Text()]; ok {
-			fmt.Println(scanner.Text())
+	scanFile(file1, func(line string) error {
+		if _, ok := file2Lines[line]; ok {
+			fmt.Println(line)
 		}
-	}
-	if err := scanner.Err(); err != nil {
-		return err
-	}
+		return nil
+	})
 	return nil
 }
 
@@ -89,20 +91,12 @@ func difference(file1, file2 string) error {
 		return err
 	}
 
-	f, err := os.Open(file1)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		if _, ok := file2Lines[scanner.Text()]; !ok {
-			fmt.Println(scanner.Text())
+	scanFile(file1, func(line string) error {
+		if _, ok := file2Lines[line]; !ok {
+			fmt.Println(line)
 		}
-	}
-	if err := scanner.Err(); err != nil {
-		return err
-	}
+		return nil
+	})
 	return nil
 }
 
