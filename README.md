@@ -21,7 +21,9 @@ Examples:
 
 ```bash
 $ seq 1 10 > /tmp/a
+
 $ seq 5 15 > /tmp/b
+
 $ setop intersection /tmp/a /tmp/b  # lines in both A and B
 5
 6
@@ -29,6 +31,7 @@ $ setop intersection /tmp/a /tmp/b  # lines in both A and B
 8
 9
 10
+
 $ setop difference /tmp/a /tmp/b  # lines in A but not B
 1
 2
