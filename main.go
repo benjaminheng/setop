@@ -63,10 +63,13 @@ func scanFile(filePath string, lineFunc func(line string) error) error {
 
 func getLineLookup(filePath string) (map[string]struct{}, error) {
 	lookup := make(map[string]struct{})
-	scanFile(filePath, func(line string) error {
+	err := scanFile(filePath, func(line string) error {
 		lookup[line] = struct{}{}
 		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
 	return lookup, nil
 }
 
@@ -76,12 +79,15 @@ func intersection(file1, file2 string) error {
 		return err
 	}
 
-	scanFile(file1, func(line string) error {
+	err = scanFile(file1, func(line string) error {
 		if _, ok := file2Lines[line]; ok {
 			fmt.Println(line)
 		}
 		return nil
 	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -91,12 +97,15 @@ func difference(file1, file2 string) error {
 		return err
 	}
 
-	scanFile(file1, func(line string) error {
+	err = scanFile(file1, func(line string) error {
 		if _, ok := file2Lines[line]; !ok {
 			fmt.Println(line)
 		}
 		return nil
 	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
